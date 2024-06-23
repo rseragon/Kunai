@@ -24,7 +24,7 @@ pub fn render_ui(frame: &mut Frame, kunai: &mut Kunai) {
         .split(frame.size());
 
     // Render title
-    render_header(frame, layout[0]);
+    render_header(frame, layout[0], kunai);
 
     // Render body
     match kunai.current_screen {

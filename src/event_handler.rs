@@ -25,22 +25,42 @@ pub fn handle_keypress(kunai: &mut Kunai) -> bool {
 
 fn handle_taskselection(kunai: &mut Kunai, key: KeyEvent) -> bool {
     match key.code {
-        KeyCode::Up | KeyCode::Char('k') => {
-            kunai.tasks.decrement_index();
-            kunai
-                .tasks
-                .table_state
-                .select(kunai.tasks.selected_task_idx);
-        }
+        KeyCode::Up => kunai.tasks.decrement_index(),
 
-        KeyCode::Down | KeyCode::Char('j') => {
-            kunai.tasks.increment_index();
-            kunai
-                .tasks
-                .table_state
-                .select(kunai.tasks.selected_task_idx);
+        KeyCode::Down => kunai.tasks.increment_index(),
+        KeyCode::Char(c) => {
+            if kunai.tasks.name_search || kunai.tasks.pid_search {
+                kunai.tasks.search_string.push(c);
+
+                // Deselect idx as it might be out of range
+                kunai.tasks.deselect_index();
+            } else {
+                match c {
+                    'k' => kunai.tasks.decrement_index(),
+                    'j' => kunai.tasks.increment_index(),
+                    'r' => kunai.tasks.refresh_list(),
+                    '/' => kunai.tasks.start_name_search(),
+                    'g' => kunai.tasks.start_name_search(),
+                    'q' => return false,
+                    _ => {}
+                }
+            }
         }
-        KeyCode::Char('q') => return false,
+        KeyCode::Esc => {
+            if kunai.tasks.name_search || kunai.tasks.pid_search {
+                kunai.tasks.stop_search();
+            } else {
+                return false;
+            }
+        }
+        KeyCode::Backspace => {
+            if kunai.tasks.name_search || kunai.tasks.pid_search {
+                kunai.tasks.search_string.pop();
+
+                // Deselect idx as it might be out of range
+                kunai.tasks.deselect_index();
+            }
+        }
         _ => {}
     }
 
