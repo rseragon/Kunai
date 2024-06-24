@@ -15,20 +15,9 @@ pub fn render_task_list(frame: &mut Frame, body_rect: Rect, kunai: &mut Kunai) {
     let mut rows = Vec::new();
 
     // Searching
-    if kunai.tasks.name_search {
-        for t in &kunai.tasks.task_list {
+    if let Some(filtered_list) = &kunai.tasks.filtered_task_list {
+        for t in filtered_list {
             if t.name.contains(&kunai.tasks.search_string) {
-                rows.push(Row::new(vec![
-                    t.pid.clone(),
-                    t.name.clone(),
-                    t.state.clone(),
-                    t.cmdline.clone(),
-                ]))
-            }
-        }
-    } else if kunai.tasks.pid_search {
-        for t in &kunai.tasks.task_list {
-            if t.pid.contains(&kunai.tasks.search_string) {
                 rows.push(Row::new(vec![
                     t.pid.clone(),
                     t.name.clone(),

@@ -46,7 +46,7 @@ fn get_pids() -> Result<Vec<String>, io::Error> {
     Ok(pids)
 }
 
-fn get_task_info(pid: &String) -> Result<Task, io::Error> {
+pub fn get_task_info(pid: &String) -> Result<Task, io::Error> {
     let mut task = Task::new();
 
     task.pid = String::from(pid);

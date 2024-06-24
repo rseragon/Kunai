@@ -4,13 +4,17 @@ use ratatui::{
 };
 
 use crate::{
-    components::{footer::render_footer, header::render_header, task_selector::render_task_list},
+    components::{
+        edit_memory::render_memory_editor, footer::render_footer, header::render_header,
+        task_selector::render_task_list,
+    },
     kunai::Kunai,
 };
 
 #[derive(Debug)]
 pub enum CurrentScreen {
-    TaskSelection,
+    TaskSelectionScreen,
+    MemoryEditingScreen,
 }
 
 pub fn render_ui(frame: &mut Frame, kunai: &mut Kunai) {
@@ -28,7 +32,8 @@ pub fn render_ui(frame: &mut Frame, kunai: &mut Kunai) {
 
     // Render body
     match kunai.current_screen {
-        CurrentScreen::TaskSelection => render_task_list(frame, layout[1], kunai),
+        CurrentScreen::TaskSelectionScreen => render_task_list(frame, layout[1], kunai),
+        CurrentScreen::MemoryEditingScreen => render_memory_editor(frame, layout[1], kunai),
     };
 
     // Render footer

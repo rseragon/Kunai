@@ -1,4 +1,3 @@
-use std::io;
 use std::{error::Error, io::Stdout};
 
 use event_handler::handle_keypress;
@@ -9,6 +8,7 @@ use ui::render_ui;
 mod components;
 mod event_handler;
 mod kunai;
+mod memory_model;
 mod proc_utils;
 mod tui;
 mod ui;
@@ -24,6 +24,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(tui::restore()?)
 }
 
+#[allow(dead_code)]
 fn dummy_runner(kunai: &mut Kunai) {
     kunai.tasks.refresh_list();
     println!("{:#?}", kunai.tasks.task_list);

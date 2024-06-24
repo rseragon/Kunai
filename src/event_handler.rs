@@ -13,7 +13,8 @@ pub fn handle_keypress(kunai: &mut Kunai) -> bool {
                 }
 
                 match kunai.current_screen {
-                    CurrentScreen::TaskSelection => return handle_taskselection(kunai, key),
+                    CurrentScreen::TaskSelectionScreen => return handle_taskselection(kunai, key),
+                    CurrentScreen::MemoryEditingScreen => return handle_memoryeditor(kunai, key),
                 }
             }
         }
@@ -26,11 +27,11 @@ pub fn handle_keypress(kunai: &mut Kunai) -> bool {
 fn handle_taskselection(kunai: &mut Kunai, key: KeyEvent) -> bool {
     match key.code {
         KeyCode::Up => kunai.tasks.decrement_index(),
-
         KeyCode::Down => kunai.tasks.increment_index(),
         KeyCode::Char(c) => {
             if kunai.tasks.name_search || kunai.tasks.pid_search {
                 kunai.tasks.search_string.push(c);
+                kunai.tasks.update_filtered_list();
 
                 // Deselect idx as it might be out of range
                 kunai.tasks.deselect_index();
@@ -40,7 +41,7 @@ fn handle_taskselection(kunai: &mut Kunai, key: KeyEvent) -> bool {
                     'j' => kunai.tasks.increment_index(),
                     'r' => kunai.tasks.refresh_list(),
                     '/' => kunai.tasks.start_name_search(),
-                    'g' => kunai.tasks.start_name_search(),
+                    'g' => kunai.tasks.start_pid_search(),
                     'q' => return false,
                     _ => {}
                 }
@@ -56,13 +57,19 @@ fn handle_taskselection(kunai: &mut Kunai, key: KeyEvent) -> bool {
         KeyCode::Backspace => {
             if kunai.tasks.name_search || kunai.tasks.pid_search {
                 kunai.tasks.search_string.pop();
+                kunai.tasks.update_filtered_list();
 
                 // Deselect idx as it might be out of range
                 kunai.tasks.deselect_index();
             }
         }
+        KeyCode::Enter => if kunai.tasks.selected_task_idx.is_some() {},
         _ => {}
     }
 
+    true
+}
+
+fn handle_memoryeditor(kunai: &mut Kunai, key: KeyEvent) -> bool {
     true
 }

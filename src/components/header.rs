@@ -6,9 +6,16 @@ use ratatui::{
     Frame,
 };
 
-use crate::kunai::Kunai;
+use crate::{kunai::Kunai, ui::CurrentScreen};
 
 pub fn render_header(frame: &mut Frame, header_rect: Rect, kunai: &mut Kunai) {
+    match kunai.current_screen {
+        CurrentScreen::TaskSelectionScreen => task_screen_header(frame, header_rect, kunai),
+        CurrentScreen::MemoryEditingScreen => memedit_screen_header(frame, header_rect, kunai),
+    }
+}
+
+fn task_screen_header(frame: &mut Frame, header_rect: Rect, kunai: &mut Kunai) {
     let title_block = Block::default()
         .borders(Borders::ALL)
         .style(Style::default());
@@ -45,4 +52,14 @@ pub fn render_header(frame: &mut Frame, header_rect: Rect, kunai: &mut Kunai) {
 
         frame.render_widget(title, header_chunk[0]);
     }
+}
+
+fn memedit_screen_header(frame: &mut Frame, header_rect: Rect, kunai: &mut Kunai) {
+    let proc_info = Paragraph::new(Text::styled(
+        format!("{} - {}", kunai.memedit.task.name, kunai.memedit.task.pid),
+        Style::default().fg(Color::Green),
+    ))
+    .block(Block::default().borders(Borders::ALL));
+
+    frame.render_widget(proc_info, header_rect);
 }

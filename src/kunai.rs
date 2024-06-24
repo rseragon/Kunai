@@ -2,7 +2,7 @@ use std::usize;
 
 use ratatui::widgets::TableState;
 
-use crate::{proc_utils::get_tasks, ui::CurrentScreen};
+use crate::{memory_model::TaskMemory, proc_utils::get_tasks, ui::CurrentScreen};
 
 #[derive(Debug)]
 pub struct Task {
@@ -23,31 +23,45 @@ pub struct TaskSelection {
     pub name_search: bool,
     pub pid_search: bool,
     pub search_string: String,
+    pub filtered_task_list: Option<Vec<Task>>,
+}
+
+#[derive(Debug)]
+pub struct MemoryEditor {
+    pub task: Task,
+    pub task_mem: TaskMemory,
 }
 
 #[derive(Debug)]
 pub struct Kunai {
     pub tasks: TaskSelection,
+    pub memedit: MemoryEditor,
     pub current_screen: CurrentScreen,
 }
 
 impl Kunai {
     pub fn new() -> Kunai {
         Kunai {
-            tasks: TaskSelection {
-                task_list: Vec::new(),
-                selected_task_idx: None,
-                table_state: TableState::default(),
-                name_search: false,
-                pid_search: false,
-                search_string: String::new(),
-            },
-            current_screen: CurrentScreen::TaskSelection, // The initial screen
+            tasks: TaskSelection::new(),
+            memedit: MemoryEditor::new(),
+            current_screen: CurrentScreen::TaskSelectionScreen, // The initial screen
         }
     }
 }
 
 impl TaskSelection {
+    pub fn new() -> TaskSelection {
+        TaskSelection {
+            task_list: Vec::new(),
+            selected_task_idx: None,
+            table_state: TableState::default(),
+            name_search: false,
+            pid_search: false,
+            search_string: String::new(),
+            filtered_task_list: None,
+        }
+    }
+
     pub fn refresh_list(&mut self) {
         match get_tasks() {
             Ok(tasks) => self.task_list = tasks,
@@ -59,7 +73,12 @@ impl TaskSelection {
         if self.selected_task_idx.is_none() {
             self.selected_task_idx = Some(0);
         }
-        self.selected_task_idx = Some((self.selected_task_idx.unwrap() + 1) % self.task_list.len());
+        let list_len = match &self.filtered_task_list {
+            Some(l) => l.len(),
+            None => self.task_list.len(),
+        };
+
+        self.selected_task_idx = Some((self.selected_task_idx.unwrap() + 1) % list_len);
 
         self.table_state.select(self.selected_task_idx);
     }
@@ -68,12 +87,18 @@ impl TaskSelection {
         if self.selected_task_idx.is_none() {
             self.selected_task_idx = Some(0);
         }
+
         let idx = self.selected_task_idx.unwrap();
 
+        let list_len = match &self.filtered_task_list {
+            Some(l) => l.len(),
+            None => self.task_list.len(),
+        };
+
         if idx == 0 {
-            self.selected_task_idx = Some(self.task_list.len() - 1);
+            self.selected_task_idx = Some(list_len - 1);
         } else {
-            self.selected_task_idx = Some((idx - 1) % self.task_list.len());
+            self.selected_task_idx = Some((idx - 1) % list_len);
         }
 
         self.table_state.select(self.selected_task_idx);
@@ -87,6 +112,7 @@ impl TaskSelection {
     pub fn stop_search(&mut self) {
         self.pid_search = false;
         self.name_search = false;
+        self.filtered_task_list = None;
     }
 
     pub fn start_pid_search(&mut self) {
@@ -97,8 +123,28 @@ impl TaskSelection {
         self.name_search = true;
     }
 
-    pub fn select_task(&mut self) {
-        // TODO: Update screen && send selected task info to next screen
+    pub fn update_filtered_list(&mut self) {
+        if self.search_string.is_empty() {
+            self.filtered_task_list = None;
+        }
+
+        let mut filtered_list: Vec<Task> = Vec::new();
+
+        if self.name_search {
+            for t in &self.task_list {
+                if t.name.contains(&self.search_string) {
+                    filtered_list.push(t.clone());
+                }
+            }
+        } else if self.pid_search {
+            for t in &self.task_list {
+                if t.pid.contains(&self.search_string) {
+                    filtered_list.push(t.clone());
+                }
+            }
+        }
+
+        self.filtered_task_list = Some(filtered_list);
     }
 }
 
@@ -109,6 +155,24 @@ impl Task {
             name: String::new(),
             state: String::new(),
             cmdline: String::new(),
+        }
+    }
+
+    pub fn clone(&self) -> Task {
+        Task {
+            pid: self.pid.clone(),
+            name: self.name.clone(),
+            state: self.state.clone(),
+            cmdline: self.cmdline.clone(),
+        }
+    }
+}
+
+impl MemoryEditor {
+    pub fn new() -> MemoryEditor {
+        MemoryEditor {
+            task: Task::new(),
+            task_mem: TaskMemory::new(),
         }
     }
 }
