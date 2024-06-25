@@ -63,7 +63,11 @@ fn handle_taskselection(kunai: &mut Kunai, key: KeyEvent) -> bool {
                 kunai.tasks.deselect_index();
             }
         }
-        KeyCode::Enter => if kunai.tasks.selected_task_idx.is_some() {},
+        KeyCode::Enter if kunai.tasks.selected_task_idx.is_some() => {
+            // TODO: Cloning bad?
+            kunai
+                .select_task(kunai.tasks.task_list[kunai.tasks.selected_task_idx.unwrap()].clone());
+        }
         _ => {}
     }
 

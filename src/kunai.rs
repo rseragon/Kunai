@@ -47,6 +47,14 @@ impl Kunai {
             current_screen: CurrentScreen::TaskSelectionScreen, // The initial screen
         }
     }
+
+    pub fn select_task(&mut self, task: Task) {
+        self.memedit.task = task.clone();
+        self.memedit.task_mem = TaskMemory::new();
+        self.memedit.task_mem.populate_info(&task.pid);
+
+        self.current_screen = CurrentScreen::MemoryEditingScreen;
+    }
 }
 
 impl TaskSelection {

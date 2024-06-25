@@ -1,9 +1,6 @@
-use std::{
-    fs::{self},
-    io,
-};
+use std::{fs, io};
 
-use crate::{kunai::Task, utils::is_numeric};
+use crate::{kunai::Task, memory_model::MemoryMap, utils::is_numeric};
 
 pub fn get_tasks() -> Result<Vec<Task>, io::Error> {
     let mut task_list = Vec::new();
@@ -19,6 +16,61 @@ pub fn get_tasks() -> Result<Vec<Task>, io::Error> {
     }
 
     Ok(task_list)
+}
+
+pub fn read_maps(pid: &String) -> Result<Vec<MemoryMap>, io::Error> {
+    let mut maps = Vec::new();
+
+    let maps_file = "/proc/".to_string() + pid + "/maps";
+
+    let maps_str = fs::read_to_string(maps_file)?;
+
+    for line in maps_str.lines() {
+        let mut mm = MemoryMap::new();
+        let mut sline = line.split(' ');
+
+        // The first part contains `start-end` mem
+        let mut startend = sline.next();
+        let mut memsplit = match startend.take() {
+            Some(s) => s.split('-'),
+            None => continue,
+        };
+
+        let start = match memsplit.next() {
+            Some(s) => s,
+            None => continue,
+        };
+
+        let end = match memsplit.next() {
+            Some(s) => s,
+            None => continue,
+        };
+
+        mm.start = start.to_string();
+        mm.end = end.to_string();
+
+        // Read perms
+        let perms = match sline.next() {
+            Some(s) => s,
+            None => continue,
+        };
+        mm.perms = perms.to_string();
+
+        // Skip the next 3
+        sline.next();
+        sline.next();
+        sline.next();
+
+        let mem_name = match sline.next() {
+            Some(s) => s,
+            None => "", // This can be None
+        };
+        mm.name = mem_name.to_string();
+
+        maps.push(mm);
+    }
+
+    Ok(maps)
 }
 
 fn get_pids() -> Result<Vec<String>, io::Error> {

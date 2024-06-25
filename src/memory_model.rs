@@ -1,11 +1,21 @@
+use crate::{kunai::Task, proc_utils::read_maps};
+
 #[derive(Debug)]
 pub struct TaskMemory {
     pub map: Vec<MemoryMap>,
 }
 
+/// Utilizes lazy loading... (Don't wanna read info until called for)
 impl TaskMemory {
     pub fn new() -> TaskMemory {
         TaskMemory { map: Vec::new() }
+    }
+
+    pub fn populate_info(&mut self, pid: &String) {
+        self.map = match read_maps(pid) {
+            Ok(m) => m,
+            Err(_) => Vec::new(), // TODO: Error handling here!
+        };
     }
 }
 

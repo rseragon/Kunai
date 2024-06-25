@@ -2,6 +2,7 @@ use std::{error::Error, io::Stdout};
 
 use event_handler::handle_keypress;
 use kunai::Kunai;
+use proc_utils::read_maps;
 use ratatui::{backend::CrosstermBackend, Terminal};
 use ui::render_ui;
 
@@ -22,13 +23,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     // dummy_runner(&mut kunai);
 
     Ok(tui::restore()?)
+    // Ok(())
 }
 
 #[allow(dead_code)]
 fn dummy_runner(kunai: &mut Kunai) {
-    kunai.tasks.refresh_list();
-    println!("{:#?}", kunai.tasks.task_list);
-    println!("Hi!");
+    let pid = "1836".to_string();
+    let maps = read_maps(&pid).unwrap();
+    println!("{:?}", maps);
 }
 
 fn run_app(terminal: &mut Terminal<CrosstermBackend<Stdout>>, kunai: &mut Kunai) {
