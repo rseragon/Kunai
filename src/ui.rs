@@ -37,5 +37,5 @@ pub fn render_ui(frame: &mut Frame, kunai: &mut Kunai) {
     };
 
     // Render footer
-    render_footer(frame, layout[2]);
+    render_footer(frame, layout[2], kunai);
 }

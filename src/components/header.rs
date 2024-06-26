@@ -56,7 +56,7 @@ fn task_screen_header(frame: &mut Frame, header_rect: Rect, kunai: &mut Kunai) {
 
 fn memedit_screen_header(frame: &mut Frame, header_rect: Rect, kunai: &mut Kunai) {
     let proc_info = Paragraph::new(Text::styled(
-        format!("{} - {}", kunai.memedit.task.name, kunai.memedit.task.pid),
+        format!("{} ({})", kunai.memedit.task.name, kunai.memedit.task.pid),
         Style::default().fg(Color::Green),
     ))
     .block(Block::default().borders(Borders::ALL));

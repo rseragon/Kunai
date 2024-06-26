@@ -27,7 +27,7 @@ pub fn read_maps(pid: &String) -> Result<Vec<MemoryMap>, io::Error> {
 
     for line in maps_str.lines() {
         let mut mm = MemoryMap::new();
-        let mut sline = line.split(' ');
+        let mut sline = line.split_ascii_whitespace();
 
         // The first part contains `start-end` mem
         let mut startend = sline.next();

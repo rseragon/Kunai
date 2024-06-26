@@ -30,6 +30,9 @@ pub struct TaskSelection {
 pub struct MemoryEditor {
     pub task: Task,
     pub task_mem: TaskMemory,
+
+    // UI Sfuff
+    pub show_maps: bool,
 }
 
 #[derive(Debug)]
@@ -181,6 +184,7 @@ impl MemoryEditor {
         MemoryEditor {
             task: Task::new(),
             task_mem: TaskMemory::new(),
+            show_maps: true,
         }
     }
 }
