@@ -17,6 +17,13 @@ pub enum CurrentScreen {
     MemoryEditingScreen,
 }
 
+#[derive(Debug, PartialEq, Eq)]
+pub enum SubScreen {
+    MemoryMaps,
+    MemorySearch,
+    ValueEditing,
+}
+
 pub fn render_ui(frame: &mut Frame, kunai: &mut Kunai) {
     let layout = Layout::default()
         .direction(Direction::Vertical)

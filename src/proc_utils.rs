@@ -63,7 +63,7 @@ pub fn read_maps(pid: &String) -> Result<Vec<MemoryMap>, io::Error> {
 
         let mem_name = match sline.next() {
             Some(s) => s,
-            None => "", // This can be None
+            None => "-", // This can be None
         };
         mm.name = mem_name.to_string();
 

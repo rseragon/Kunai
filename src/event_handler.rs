@@ -1,6 +1,9 @@
 use crossterm::event::{self, Event, KeyCode, KeyEvent};
 
-use crate::{kunai::Kunai, ui::CurrentScreen};
+use crate::{
+    kunai::Kunai,
+    ui::{CurrentScreen, SubScreen},
+};
 
 // Returns a boolean to justify further processing of events
 pub fn handle_keypress(kunai: &mut Kunai) -> bool {
@@ -75,5 +78,42 @@ fn handle_taskselection(kunai: &mut Kunai, key: KeyEvent) -> bool {
 }
 
 fn handle_memoryeditor(kunai: &mut Kunai, key: KeyEvent) -> bool {
+    match key.code {
+        KeyCode::Tab => {
+            kunai.memedit.sub_screen = match kunai.memedit.sub_screen {
+                SubScreen::MemorySearch => SubScreen::MemoryMaps,
+                SubScreen::MemoryMaps => SubScreen::MemorySearch,
+                SubScreen::ValueEditing => SubScreen::MemorySearch,
+            }
+        }
+        KeyCode::Esc => match kunai.memedit.sub_screen {
+            SubScreen::MemorySearch => kunai.current_screen = CurrentScreen::TaskSelectionScreen,
+            SubScreen::MemoryMaps => kunai.memedit.sub_screen = SubScreen::MemorySearch,
+            SubScreen::ValueEditing => kunai.memedit.sub_screen = SubScreen::MemorySearch,
+        },
+        KeyCode::Char(c) => match kunai.memedit.sub_screen {
+            SubScreen::MemorySearch => kunai.memedit.search_string.push(c),
+            SubScreen::MemoryMaps => {}
+            SubScreen::ValueEditing => {}
+        },
+        KeyCode::Backspace => match kunai.memedit.sub_screen {
+            SubScreen::MemorySearch => {
+                kunai.memedit.search_string.pop();
+            }
+            SubScreen::MemoryMaps => {}
+            SubScreen::ValueEditing => {}
+        },
+        KeyCode::Enter => match kunai.memedit.sub_screen {
+            SubScreen::MemorySearch => {
+                // TODO: Memory search
+            }
+            SubScreen::MemoryMaps => {
+                // TODO: Enable memoroy search toggle
+            }
+            SubScreen::ValueEditing => {}
+        },
+        _ => {}
+    }
+
     true
 }

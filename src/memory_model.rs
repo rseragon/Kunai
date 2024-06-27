@@ -44,3 +44,12 @@ impl MemoryMap {
         }
     }
 }
+
+#[derive(Debug)]
+pub struct SearchLocation {
+    pub start: String,
+    pub end: String,
+    pub search_string: String,
+    pub mem_info: MemoryMap,
+    // TODO: prev value
+}

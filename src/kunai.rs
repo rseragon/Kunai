@@ -2,7 +2,11 @@ use std::usize;
 
 use ratatui::widgets::TableState;
 
-use crate::{memory_model::TaskMemory, proc_utils::get_tasks, ui::CurrentScreen};
+use crate::{
+    memory_model::{SearchLocation, TaskMemory},
+    proc_utils::get_tasks,
+    ui::{CurrentScreen, SubScreen},
+};
 
 #[derive(Debug)]
 pub struct Task {
@@ -30,9 +34,13 @@ pub struct TaskSelection {
 pub struct MemoryEditor {
     pub task: Task,
     pub task_mem: TaskMemory,
+    pub search_string: String,
+    pub search_list: Vec<SearchLocation>,
 
     // UI Sfuff
-    pub show_maps: bool,
+    pub sub_screen: SubScreen,
+    pub map_table_state: TableState,
+    pub search_table_state: TableState,
 }
 
 #[derive(Debug)]
@@ -184,7 +192,11 @@ impl MemoryEditor {
         MemoryEditor {
             task: Task::new(),
             task_mem: TaskMemory::new(),
-            show_maps: true,
+            sub_screen: SubScreen::MemorySearch,
+            map_table_state: TableState::new(),
+            search_table_state: TableState::new(),
+            search_string: String::new(),
+            search_list: Vec::new(),
         }
     }
 }
