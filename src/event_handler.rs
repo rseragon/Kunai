@@ -105,7 +105,7 @@ fn handle_memoryeditor(kunai: &mut Kunai, key: KeyEvent) -> bool {
         },
         KeyCode::Enter => match kunai.memedit.sub_screen {
             SubScreen::MemorySearch => {
-                // TODO: Memory search
+                kunai.memedit.search_memory();
             }
             SubScreen::MemoryMaps => {
                 // TODO: Enable memoroy search toggle

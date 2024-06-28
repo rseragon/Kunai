@@ -1,4 +1,4 @@
-use std::{fs, io};
+use std::{fs, io, usize};
 
 use crate::{kunai::Task, memory_model::MemoryMap, utils::is_numeric};
 
@@ -46,8 +46,14 @@ pub fn read_maps(pid: &String) -> Result<Vec<MemoryMap>, io::Error> {
             None => continue,
         };
 
-        mm.start = start.to_string();
-        mm.end = end.to_string();
+        mm.start = match i64::from_str_radix(start, 16) {
+            Ok(n) => n,
+            Err(_) => continue,
+        };
+        mm.end = match i64::from_str_radix(end, 16) {
+            Ok(n) => n,
+            Err(_) => continue,
+        };
 
         // Read perms
         let perms = match sline.next() {

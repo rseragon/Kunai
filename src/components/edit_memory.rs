@@ -48,7 +48,7 @@ fn render_search_table(frame: &mut Frame, table_rect: Rect, kunai: &mut Kunai) {
         let row = Row::new(vec![
             loc.start.to_string(),
             loc.end.to_string(),
-            loc.search_string.to_string(),
+            loc.value.to_string(),
             loc.mem_info.name.to_string(),
         ]);
 
@@ -79,7 +79,7 @@ fn render_maps_table(frame: &mut Frame, body_rect: Rect, kunai: &mut Kunai) {
 
     let mut rows = Vec::new();
 
-    for m in &kunai.memedit.task_mem.map {
+    for m in &kunai.memedit.task_mem.maps {
         rows.push(Row::new(vec![
             match m.should_search {
                 true => "Y".to_string(),

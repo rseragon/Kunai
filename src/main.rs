@@ -2,6 +2,7 @@ use std::{error::Error, io::Stdout};
 
 use event_handler::handle_keypress;
 use kunai::Kunai;
+use logging::initialize_logging;
 use proc_utils::read_maps;
 use ratatui::{backend::CrosstermBackend, Terminal};
 use ui::render_ui;
@@ -9,6 +10,7 @@ use ui::render_ui;
 mod components;
 mod event_handler;
 mod kunai;
+mod logging;
 mod memory_model;
 mod proc_utils;
 mod tui;
@@ -16,6 +18,8 @@ mod ui;
 mod utils;
 
 fn main() -> Result<(), Box<dyn Error>> {
+    initialize_logging()?;
+
     let mut terminal = tui::init()?;
     let mut kunai = Kunai::new();
 
