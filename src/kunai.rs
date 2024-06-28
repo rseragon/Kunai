@@ -6,11 +6,10 @@ use std::{
 };
 
 use ::memchr::memmem;
-use memchr::arch::all::memchr;
 use ratatui::widgets::TableState;
 
 use crate::{
-    memory_model::{SearchLocation, TaskMemory},
+    memory_model::{search_mem, SearchLocation, TaskMemory},
     proc_utils::get_tasks,
     trace_dbg,
     ui::{CurrentScreen, SubScreen},
@@ -209,52 +208,85 @@ impl MemoryEditor {
     }
 
     pub fn search_memory(&mut self) {
-        let mut locs = Vec::new();
+        let mut locations = Vec::new();
 
-        // open mem file
-        let mem_file = "/proc/".to_string() + &self.task.pid + "/mem";
-        let mut mem = match File::open(mem_file) {
-            Ok(f) => f,
-            Err(_) => return,
-        };
-
-        // Convert the search string to bytes
-        let search_bytes = self.search_string.as_bytes();
+        let pid = &self.task.pid;
+        let search_string = &self.search_string;
 
         for map in &self.task_mem.maps {
-            let mem_start = map.start;
-            let mem_end = map.end;
-
-            if mem.seek(SeekFrom::Current(mem_start)).is_err() {
-                continue;
+            let locs = match search_mem(pid, search_string, map) {
+                Ok(l) => l,
+                Err(e) => {
+                    trace_dbg!(e);
+                    continue;
+                }
             };
 
-            let mem_size = mem_end - mem_start;
-
-            let mut mem_buf = vec![0u8; mem_size as usize];
-
-            if mem.read_exact(&mut mem_buf).is_err() {
-                continue;
-            }
-
-            let it = memmem::find_iter(&mem_buf, &search_bytes);
-
-            for occurance in it {
-                let mut loc = SearchLocation::new();
-
-                loc.start = occurance as i64;
-                loc.end = (occurance + search_bytes.len()) as i64;
-                loc.mem_info = map.clone();
-                // TODO: Read value at loc
-
-                trace_dbg!(&loc);
-
-                locs.push(loc);
-            }
+            locations.extend(locs);
         }
 
-        self.search_list = locs;
+        self.search_list = locations;
     }
+
+    // pub fn search_memory(&mut self) {
+    //     let mut locs = Vec::new();
+    //
+    //     // open mem file
+    //     let mem_file = "/proc/".to_string() + &self.task.pid + "/mem";
+    //     let mut mem = match File::open(mem_file) {
+    //         Ok(f) => f,
+    //         Err(_) => return,
+    //     };
+    //
+    //     // Convert the search string to bytes
+    //     let search_bytes = self.search_string.as_bytes();
+    //
+    //     for map in &self.task_mem.maps {
+    //         let mem_start = map.start;
+    //         let mem_end = map.end;
+    //
+    //         if mem.seek(SeekFrom::Current(mem_start)).is_err() {
+    //             continue;
+    //         };
+    //
+    //         let mem_size = mem_end - mem_start;
+    //
+    //         let mut mem_buf = vec![0u8; mem_size as usize];
+    //
+    //         if mem.read_exact(&mut mem_buf).is_err() {
+    //             continue;
+    //         }
+    //
+    //         let it = memmem::find_iter(&mem_buf, &search_bytes);
+    //
+    //         for occurance in it {
+    //             let mut loc = SearchLocation::new();
+    //
+    //             loc.start = occurance as i64;
+    //             loc.end = (occurance + search_bytes.len()) as i64;
+    //             loc.mem_info = map.clone();
+    //             // TODO: Read value at loc
+    //
+    //             if mem.seek(SeekFrom::Start(loc.start as u64)).is_err() {
+    //                 continue; // Invalid location
+    //             }
+    //
+    //             let mut value = vec![0u8; (loc.end - loc.start) as usize];
+    //
+    //             if mem.read_exact(&mut value).is_err() {
+    //                 continue;
+    //             }
+    //
+    //             loc.value = value;
+    //
+    //             trace_dbg!(&loc);
+    //
+    //             locs.push(loc);
+    //         }
+    //     }
+    //
+    //     self.search_list = locs;
+    // }
 
     pub fn edit_memory(&mut self, location: SearchLocation, new_value: String) {}
 }

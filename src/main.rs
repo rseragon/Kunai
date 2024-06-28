@@ -7,6 +7,8 @@ use proc_utils::read_maps;
 use ratatui::{backend::CrosstermBackend, Terminal};
 use ui::render_ui;
 
+use crate::{memory_model::search_mem, utils::num_to_hex};
+
 mod components;
 mod event_handler;
 mod kunai;
@@ -19,22 +21,33 @@ mod utils;
 
 fn main() -> Result<(), Box<dyn Error>> {
     initialize_logging()?;
-
-    let mut terminal = tui::init()?;
     let mut kunai = Kunai::new();
 
+    let mut terminal = tui::init()?;
     run_app(&mut terminal, &mut kunai);
-    // dummy_runner(&mut kunai);
-
     Ok(tui::restore()?)
+
+    // dummy_runner(&mut kunai);
     // Ok(())
 }
 
 #[allow(dead_code)]
 fn dummy_runner(kunai: &mut Kunai) {
-    let pid = "1836".to_string();
+    let pid = "11489".to_string();
     let maps = read_maps(&pid).unwrap();
-    println!("{:?}", maps);
+    let search_string = "SomeString".to_string();
+
+    for map in &maps {
+        println!(
+            "Reading: {} ({} - {}) [{}]",
+            map.name,
+            num_to_hex(map.start),
+            num_to_hex(map.end),
+            map.perms
+        );
+        let res = search_mem(&pid, &search_string, map).unwrap();
+        println!("{:?}", res);
+    }
 }
 
 fn run_app(terminal: &mut Terminal<CrosstermBackend<Stdout>>, kunai: &mut Kunai) {

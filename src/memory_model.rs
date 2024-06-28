@@ -1,4 +1,12 @@
-use crate::{kunai::Task, proc_utils::read_maps};
+use core::panic;
+use std::{
+    fs::File,
+    io::{self, Read, Seek, SeekFrom},
+};
+
+use memchr::memmem;
+
+use crate::{kunai::Task, proc_utils::read_maps, trace_dbg, utils::bytes_to_string};
 
 #[derive(Debug)]
 pub struct TaskMemory {
@@ -64,4 +72,89 @@ impl SearchLocation {
             mem_info: MemoryMap::new(), // TODO: This is bad
         }
     }
+}
+
+pub fn read_mem(pid: &String, start: i64, end: i64) -> io::Result<Vec<u8>> {
+    let mem_file = "/proc/".to_string() + pid + "/mem";
+    let mut mem = match File::open(mem_file) {
+        Ok(f) => f,
+        Err(e) => return Err(e),
+    };
+
+    let read_len = end - start;
+    let mut mem_buf = vec![0u8; read_len as usize];
+
+    mem.seek(SeekFrom::Current(start))?;
+
+    mem.read_exact(&mut mem_buf)?;
+
+    Ok(mem_buf)
+}
+
+/// Searches a single map of memory
+pub fn search_mem(
+    pid: &String,
+    search_string: &String,
+    map: &MemoryMap,
+) -> io::Result<Vec<SearchLocation>> {
+    let mut locs = Vec::new();
+
+    // open mem file
+    let mem_file = "/proc/".to_string() + pid + "/mem";
+    let mut mem = match File::open(mem_file) {
+        Ok(f) => f,
+        Err(e) => return Err(e),
+    };
+
+    // Convert the search string to bytes
+    let search_bytes = search_string.as_bytes();
+
+    let mem_start = map.start;
+    let mem_end = map.end;
+
+    mem.seek(SeekFrom::Current(mem_start))?;
+
+    let mem_size = mem_end - mem_start;
+
+    let mut mem_buf = vec![0u8; mem_size as usize];
+
+    mem.read_exact(&mut mem_buf)?;
+
+    let it = memmem::find_iter(&mem_buf, &search_bytes);
+
+    for occurance in it {
+        // println!("Found occurance in {} at {}", map.name, occurance);
+        let mut loc = SearchLocation::new();
+
+        loc.start = occurance as i64;
+        loc.end = (occurance + search_bytes.len()) as i64;
+        loc.mem_info = map.clone();
+        // TODO: Read value at loc
+
+        match mem.seek(SeekFrom::Start((map.start + loc.start) as u64)) {
+            Ok(_) => {}
+            Err(e) => {
+                // println!("{e}");
+                continue;
+            }
+        }
+
+        let mut value = vec![0u8; (loc.end - loc.start) as usize];
+
+        match mem.read_exact(&mut value) {
+            Ok(_) => {}
+            Err(e) => {
+                // println!("{e}");
+                panic!();
+            }
+        }
+
+        loc.value = bytes_to_string(value);
+
+        trace_dbg!(&loc);
+
+        locs.push(loc);
+    }
+
+    Ok(locs)
 }
