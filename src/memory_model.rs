@@ -126,26 +126,26 @@ pub fn search_mem(
         // println!("Found occurance in {} at {}", map.name, occurance);
         let mut loc = SearchLocation::new();
 
-        loc.start = occurance as i64;
-        loc.end = (occurance + search_bytes.len()) as i64;
+        loc.start = map.start + occurance as i64;
+        loc.end = map.start + loc.start + search_bytes.len() as i64;
         loc.mem_info = map.clone();
         // TODO: Read value at loc
 
-        match mem.seek(SeekFrom::Start((map.start + loc.start) as u64)) {
+        match mem.seek(SeekFrom::Start(loc.start as u64)) {
             Ok(_) => {}
             Err(e) => {
-                // println!("{e}");
+                println!("{e}");
                 continue;
             }
         }
 
-        let mut value = vec![0u8; (loc.end - loc.start) as usize];
+        let mut value = vec![0u8; search_bytes.len()];
 
         match mem.read_exact(&mut value) {
             Ok(_) => {}
             Err(e) => {
-                // println!("{e}");
-                panic!();
+                println!("{e}");
+                // panic!();
             }
         }
 

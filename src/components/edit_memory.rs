@@ -5,7 +5,11 @@ use ratatui::{
     Frame,
 };
 
-use crate::{kunai::Kunai, ui::SubScreen, utils::centered_rect};
+use crate::{
+    kunai::Kunai,
+    ui::SubScreen,
+    utils::{centered_rect, num_to_hex},
+};
 
 pub fn render_memory_editor(frame: &mut Frame, body_rect: Rect, kunai: &mut Kunai) {
     if kunai.memedit.sub_screen == SubScreen::MemoryMaps {
@@ -46,8 +50,8 @@ fn render_search_table(frame: &mut Frame, table_rect: Rect, kunai: &mut Kunai) {
 
     for loc in &kunai.memedit.search_list {
         let row = Row::new(vec![
-            loc.start.to_string(),
-            loc.end.to_string(),
+            num_to_hex(loc.start),
+            num_to_hex(loc.end),
             loc.value.to_string(),
             loc.mem_info.name.to_string(),
         ]);
