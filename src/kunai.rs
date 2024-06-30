@@ -1,11 +1,5 @@
-use core::panic;
-use std::{
-    fs::{self, File},
-    io::{Read, Seek, SeekFrom},
-    usize,
-};
+use std::{os::unix::thread, usize};
 
-use ::memchr::memmem;
 use ratatui::widgets::TableState;
 
 use crate::{
@@ -35,6 +29,7 @@ pub struct TaskSelection {
     pub pid_search: bool,
     pub search_string: String,
     pub filtered_task_list: Option<Vec<Task>>,
+    pub ui_msg: Option<String>,
 }
 
 #[derive(Debug)]
@@ -48,6 +43,7 @@ pub struct MemoryEditor {
     pub sub_screen: SubScreen,
     pub map_table_state: TableState,
     pub search_table_state: TableState,
+    pub ui_msg: Option<String>,
 }
 
 #[derive(Debug)]
@@ -55,6 +51,7 @@ pub struct Kunai {
     pub tasks: TaskSelection,
     pub memedit: MemoryEditor,
     pub current_screen: CurrentScreen,
+    pub ui_msg: Option<String>,
 }
 
 impl Kunai {
@@ -63,6 +60,7 @@ impl Kunai {
             tasks: TaskSelection::new(),
             memedit: MemoryEditor::new(),
             current_screen: CurrentScreen::TaskSelectionScreen, // The initial screen
+            ui_msg: None,
         }
     }
 
@@ -85,6 +83,7 @@ impl TaskSelection {
             pid_search: false,
             search_string: String::new(),
             filtered_task_list: None,
+            ui_msg: None,
         }
     }
 
@@ -204,10 +203,13 @@ impl MemoryEditor {
             search_table_state: TableState::new(),
             search_string: String::new(),
             search_list: Vec::new(),
+            ui_msg: None,
         }
     }
 
     pub fn search_memory(&mut self) {
+        // TODO: This message isn't visible
+        self.ui_msg = Some(format!("Searching: {}", self.search_string));
         let mut locations = Vec::new();
 
         let pid = &self.task.pid;
@@ -224,7 +226,9 @@ impl MemoryEditor {
 
             locations.extend(locs);
         }
+        std::thread::sleep(std::time::Duration::from_secs(5));
 
+        self.ui_msg = Some(format!("Found {} occurances!", locations.len()));
         self.search_list = locations;
     }
 

@@ -1,4 +1,6 @@
-use crossterm::event::{self, Event, KeyCode, KeyEvent};
+use core::panic;
+
+use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyModifiers};
 
 use crate::{
     kunai::Kunai,
@@ -92,7 +94,18 @@ fn handle_memoryeditor(kunai: &mut Kunai, key: KeyEvent) -> bool {
             SubScreen::ValueEditing => kunai.memedit.sub_screen = SubScreen::MemorySearch,
         },
         KeyCode::Char(c) => match kunai.memedit.sub_screen {
-            SubScreen::MemorySearch => kunai.memedit.search_string.push(c),
+            SubScreen::MemorySearch => {
+                if key.modifiers == KeyModifiers::CONTROL {
+                    match c {
+                        // TODO: Impl refresh search
+                        'r' => kunai.memedit.search_memory(),
+                        'm' => kunai.memedit.sub_screen = SubScreen::MemoryMaps,
+                        _ => {}
+                    }
+                } else {
+                    kunai.memedit.search_string.push(c)
+                }
+            }
             SubScreen::MemoryMaps => {}
             SubScreen::ValueEditing => {}
         },
@@ -105,10 +118,54 @@ fn handle_memoryeditor(kunai: &mut Kunai, key: KeyEvent) -> bool {
         },
         KeyCode::Enter => match kunai.memedit.sub_screen {
             SubScreen::MemorySearch => {
+                // reset search Table state
+                kunai.memedit.search_table_state.select(None);
                 kunai.memedit.search_memory();
             }
             SubScreen::MemoryMaps => {
                 // TODO: Enable memoroy search toggle
+            }
+            SubScreen::ValueEditing => {}
+        },
+        KeyCode::Up => match kunai.memedit.sub_screen {
+            SubScreen::MemoryMaps => {
+                let mut curr_idx = kunai.memedit.map_table_state.selected().unwrap_or(0);
+                if curr_idx > 0 {
+                    curr_idx -= 1;
+                } else {
+                    curr_idx = kunai.memedit.task_mem.maps.len() - 1;
+                }
+                kunai.memedit.map_table_state.select(Some(curr_idx));
+            }
+            SubScreen::MemorySearch => {
+                let mut curr_idx = kunai.memedit.search_table_state.selected().unwrap_or(0);
+                if curr_idx > 0 {
+                    curr_idx -= 1;
+                } else {
+                    curr_idx = kunai.memedit.search_list.len() - 1;
+                }
+                kunai.memedit.search_table_state.select(Some(curr_idx));
+            }
+            SubScreen::ValueEditing => {}
+        },
+        KeyCode::Down => match kunai.memedit.sub_screen {
+            SubScreen::MemoryMaps => {
+                let mut curr_idx = kunai.memedit.map_table_state.selected().unwrap_or(0);
+                if curr_idx >= kunai.memedit.task_mem.maps.len() - 1 {
+                    curr_idx = 0;
+                } else {
+                    curr_idx += 1;
+                }
+                kunai.memedit.map_table_state.select(Some(curr_idx));
+            }
+            SubScreen::MemorySearch => {
+                let mut curr_idx = kunai.memedit.search_table_state.selected().unwrap_or(0);
+                if curr_idx >= kunai.memedit.search_list.len() - 1 {
+                    curr_idx = 0;
+                } else {
+                    curr_idx += 1;
+                }
+                kunai.memedit.search_table_state.select(Some(curr_idx));
             }
             SubScreen::ValueEditing => {}
         },

@@ -40,9 +40,9 @@ fn render_search_table(frame: &mut Frame, table_rect: Rect, kunai: &mut Kunai) {
         .style(Style::new().bold())
         .bottom_margin(1);
     let column_widhts = [
-        Constraint::Percentage(20),
-        Constraint::Percentage(20),
-        Constraint::Percentage(30),
+        Constraint::Min(15),
+        Constraint::Min(15),
+        Constraint::Percentage(40),
         Constraint::Percentage(30),
     ];
 
@@ -89,8 +89,8 @@ fn render_maps_table(frame: &mut Frame, body_rect: Rect, kunai: &mut Kunai) {
                 true => "Y".to_string(),
                 false => "N".to_string(),
             },
-            m.start.to_string(),
-            m.end.to_string(),
+            num_to_hex(m.start),
+            num_to_hex(m.end),
             m.perms.to_string(),
             m.name.to_string(),
         ]));

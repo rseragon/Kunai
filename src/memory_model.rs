@@ -1,4 +1,3 @@
-use core::panic;
 use std::{
     fs::File,
     io::{self, Read, Seek, SeekFrom},
@@ -6,8 +5,9 @@ use std::{
 
 use memchr::memmem;
 
-use crate::{kunai::Task, proc_utils::read_maps, trace_dbg, utils::bytes_to_string};
+use crate::{proc_utils::read_maps, trace_dbg, utils::bytes_to_string};
 
+/// TODO: Do I require this struct?
 #[derive(Debug)]
 pub struct TaskMemory {
     pub maps: Vec<MemoryMap>,
@@ -129,7 +129,6 @@ pub fn search_mem(
         loc.start = map.start + occurance as i64;
         loc.end = map.start + loc.start + search_bytes.len() as i64;
         loc.mem_info = map.clone();
-        // TODO: Read value at loc
 
         match mem.seek(SeekFrom::Start(loc.start as u64)) {
             Ok(_) => {}
@@ -138,9 +137,7 @@ pub fn search_mem(
                 continue;
             }
         }
-
         let mut value = vec![0u8; search_bytes.len()];
-
         match mem.read_exact(&mut value) {
             Ok(_) => {}
             Err(e) => {

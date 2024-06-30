@@ -11,16 +11,27 @@ use crate::{kunai::Kunai, ui::CurrentScreen};
 pub fn render_footer(frame: &mut Frame, footer_rect: Rect, kunai: &Kunai) {
     let footer_chunks = Layout::default()
         .direction(Direction::Horizontal)
-        .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
+        .constraints([Constraint::Percentage(80), Constraint::Percentage(20)])
         .split(footer_rect);
 
-    let screen_name = match kunai.current_screen {
-        CurrentScreen::TaskSelectionScreen => "Select a task!",
-        CurrentScreen::MemoryEditingScreen => "Memory Editor!",
-    };
+    let help_message;
+
+    // Rendering Error message
+    if let Some(msg) = &kunai.ui_msg {
+        help_message = "[Kunai] ".to_string() + msg;
+    } else if let Some(msg) = &kunai.memedit.ui_msg {
+        help_message = "[MemoryEditingScreen] ".to_string() + msg;
+    } else if let Some(msg) = &kunai.tasks.ui_msg {
+        help_message = "[TaskSelectionScreen] ".to_string() + msg;
+    } else {
+        help_message = match kunai.current_screen {
+            CurrentScreen::TaskSelectionScreen => "Select a task!".to_string(),
+            CurrentScreen::MemoryEditingScreen => "Memory Editor!".to_string(),
+        };
+    }
 
     let current_screen = Paragraph::new(Span::styled(
-        screen_name,
+        help_message,
         Style::default().fg(Color::Yellow),
     ))
     .block(Block::default().borders(Borders::ALL));
