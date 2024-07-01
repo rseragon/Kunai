@@ -100,6 +100,7 @@ fn handle_memoryeditor(kunai: &mut Kunai, key: KeyEvent) -> bool {
                         // TODO: Impl refresh search
                         'r' => kunai.memedit.search_memory(),
                         'm' => kunai.memedit.sub_screen = SubScreen::MemoryMaps,
+                        'e' => kunai.memedit.sub_screen = SubScreen::ValueEditing,
                         _ => {}
                     }
                 } else {
@@ -107,14 +108,18 @@ fn handle_memoryeditor(kunai: &mut Kunai, key: KeyEvent) -> bool {
                 }
             }
             SubScreen::MemoryMaps => {}
-            SubScreen::ValueEditing => {}
+            SubScreen::ValueEditing => {
+                kunai.memedit.new_value.push(c);
+            }
         },
         KeyCode::Backspace => match kunai.memedit.sub_screen {
             SubScreen::MemorySearch => {
                 kunai.memedit.search_string.pop();
             }
             SubScreen::MemoryMaps => {}
-            SubScreen::ValueEditing => {}
+            SubScreen::ValueEditing => {
+                kunai.memedit.new_value.pop();
+            }
         },
         KeyCode::Enter => match kunai.memedit.sub_screen {
             SubScreen::MemorySearch => {

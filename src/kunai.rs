@@ -44,6 +44,10 @@ pub struct MemoryEditor {
     pub map_table_state: TableState,
     pub search_table_state: TableState,
     pub ui_msg: Option<String>,
+
+    // Value editing shit
+    pub selected_value: String,
+    pub new_value: String,
 }
 
 #[derive(Debug)]
@@ -204,6 +208,8 @@ impl MemoryEditor {
             search_string: String::new(),
             search_list: Vec::new(),
             ui_msg: None,
+            selected_value: String::new(),
+            new_value: String::new(),
         }
     }
 
