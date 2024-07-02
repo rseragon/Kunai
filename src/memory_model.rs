@@ -54,7 +54,7 @@ impl MemoryMap {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SearchLocation {
     pub start: i64,
     pub end: i64,
@@ -112,7 +112,7 @@ pub fn search_mem(
     let mem_start = map.start;
     let mem_end = map.end;
 
-    mem.seek(SeekFrom::Current(mem_start))?;
+    mem.seek(SeekFrom::Start(mem_start as u64))?;
 
     let mem_size = mem_end - mem_start;
 

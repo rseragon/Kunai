@@ -45,8 +45,8 @@ pub fn render_value_editor(frame: &mut Frame, popup_rect: Rect, kunai: &mut Kuna
         .constraints([Constraint::Min(4), Constraint::Percentage(100)])
         .split(area);
 
-    let selected_value = match kunai.memedit.search_table_state.selected() {
-        Some(idx) => kunai.memedit.search_list[idx].value.to_string(),
+    let selected_value = match &kunai.memedit.selected_value {
+        Some(loc) => loc.value.to_string(),
         None => "None".to_string(),
     };
 

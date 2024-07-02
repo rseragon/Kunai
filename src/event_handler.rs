@@ -100,7 +100,14 @@ fn handle_memoryeditor(kunai: &mut Kunai, key: KeyEvent) -> bool {
                         // TODO: Impl refresh search
                         'r' => kunai.memedit.search_memory(),
                         'm' => kunai.memedit.sub_screen = SubScreen::MemoryMaps,
-                        'e' => kunai.memedit.sub_screen = SubScreen::ValueEditing,
+                        'e' => {
+                            let selected_loc = match kunai.memedit.search_table_state.selected() {
+                                Some(idx) => kunai.memedit.search_list[idx].clone(),
+                                None => return true,
+                            };
+                            kunai.memedit.selected_value = Some(selected_loc);
+                            kunai.memedit.sub_screen = SubScreen::ValueEditing;
+                        }
                         _ => {}
                     }
                 } else {
@@ -128,9 +135,12 @@ fn handle_memoryeditor(kunai: &mut Kunai, key: KeyEvent) -> bool {
                 kunai.memedit.search_memory();
             }
             SubScreen::MemoryMaps => {
-                // TODO: Enable memoroy search toggle
+                // TODO: Enable memory search toggle
             }
-            SubScreen::ValueEditing => {}
+            SubScreen::ValueEditing => {
+                // Edit the memory
+                kunai.memedit.edit_memory();
+            }
         },
         KeyCode::Up => match kunai.memedit.sub_screen {
             SubScreen::MemoryMaps => {

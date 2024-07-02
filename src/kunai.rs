@@ -1,4 +1,9 @@
-use std::{os::unix::thread, usize};
+use std::{
+    fs::File,
+    io::{Seek, SeekFrom, Write},
+    os::unix::{fs::FileExt, thread},
+    usize,
+};
 
 use ratatui::widgets::TableState;
 
@@ -46,7 +51,7 @@ pub struct MemoryEditor {
     pub ui_msg: Option<String>,
 
     // Value editing shit
-    pub selected_value: String,
+    pub selected_value: Option<SearchLocation>,
     pub new_value: String,
 }
 
@@ -208,7 +213,7 @@ impl MemoryEditor {
             search_string: String::new(),
             search_list: Vec::new(),
             ui_msg: None,
-            selected_value: String::new(),
+            selected_value: None,
             new_value: String::new(),
         }
     }
@@ -238,5 +243,45 @@ impl MemoryEditor {
         self.search_list = locations;
     }
 
-    pub fn edit_memory(&mut self, location: SearchLocation, new_value: String) {}
+    pub fn edit_memory(&mut self) {
+        let location = match &self.selected_value {
+            Some(l) => l,
+            None => {
+                self.ui_msg = Some("Invalid memory address".to_string());
+                return;
+            }
+        };
+
+        let mem_file = "/proc/".to_string() + &self.task.pid + "/mem";
+        let mut mem = match File::options().read(true).write(true).open(mem_file) {
+            Ok(f) => f,
+            Err(e) => {
+                self.ui_msg = Some("Failed to open mem file".to_string());
+                trace_dbg!(e);
+                return;
+            }
+        };
+
+        let seek = location.start;
+        let new_val = self.new_value.as_bytes();
+
+        match mem.seek(SeekFrom::Start(seek as u64)) {
+            Ok(_) => {}
+            Err(e) => {
+                self.ui_msg = Some("Failed to seek mem file".to_string());
+                trace_dbg!(e);
+                return;
+            }
+        }
+
+        match mem.write_all(new_val) {
+            Ok(_) => {
+                self.ui_msg = Some("Written!".to_string());
+            }
+            Err(e) => {
+                self.ui_msg = Some("Failed to write at memory".to_string());
+                trace_dbg!(e);
+            }
+        };
+    }
 }
