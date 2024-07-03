@@ -25,7 +25,6 @@ pub struct Task {
 #[derive(Debug)]
 pub struct TaskSelection {
     pub task_list: Vec<Task>,
-    pub selected_task_idx: Option<usize>,
 
     pub table_state: TableState,
 
@@ -73,7 +72,17 @@ impl Kunai {
         }
     }
 
-    pub fn select_task(&mut self, task: Task) {
+    /// Select task from `filtered_task_list` if list is filtered
+    /// else take from `task_list`
+    pub fn select_task(&mut self, index: usize) {
+        let task = match &self.tasks.filtered_task_list {
+            Some(list) => list[index].clone(),
+            None => {
+                // TODO: Show UI error here
+                return;
+            }
+        };
+
         self.memedit.task = task.clone();
         self.memedit.task_mem = TaskMemory::new();
         self.memedit.task_mem.populate_info(&task.pid);
@@ -86,7 +95,6 @@ impl TaskSelection {
     pub fn new() -> TaskSelection {
         TaskSelection {
             task_list: Vec::new(),
-            selected_task_idx: None,
             table_state: TableState::default(),
             name_search: false,
             pid_search: false,
@@ -104,57 +112,58 @@ impl TaskSelection {
     }
 
     pub fn increment_index(&mut self) {
-        if self.selected_task_idx.is_none() {
-            self.selected_task_idx = Some(0);
-        }
         let list_len = match &self.filtered_task_list {
             Some(l) => l.len(),
             None => self.task_list.len(),
         };
 
-        self.selected_task_idx = Some((self.selected_task_idx.unwrap() + 1) % list_len);
+        let idx = match self.table_state.selected() {
+            Some(i) => (i + 1) % list_len,
+            None => 0,
+        };
 
-        self.table_state.select(self.selected_task_idx);
+        self.table_state.select(Some(idx));
     }
 
     pub fn decrement_index(&mut self) {
-        if self.selected_task_idx.is_none() {
-            self.selected_task_idx = Some(0);
-        }
-
-        let idx = self.selected_task_idx.unwrap();
-
         let list_len = match &self.filtered_task_list {
             Some(l) => l.len(),
             None => self.task_list.len(),
         };
 
-        if idx == 0 {
-            self.selected_task_idx = Some(list_len - 1);
-        } else {
-            self.selected_task_idx = Some((idx - 1) % list_len);
-        }
+        let idx = match self.table_state.selected() {
+            Some(i) => {
+                if i == 0 {
+                    i - 1
+                } else {
+                    (i - 1) % list_len
+                }
+            }
+            None => list_len - 1,
+        };
 
-        self.table_state.select(self.selected_task_idx);
+        self.table_state.select(Some(idx));
     }
 
     pub fn deselect_index(&mut self) {
-        self.selected_task_idx = None;
-        self.table_state.select(self.selected_task_idx);
+        self.table_state.select(None);
     }
 
     pub fn stop_search(&mut self) {
         self.pid_search = false;
         self.name_search = false;
         self.filtered_task_list = None;
+        self.table_state.select(None);
     }
 
     pub fn start_pid_search(&mut self) {
         self.pid_search = true;
+        self.table_state.select(None);
     }
 
     pub fn start_name_search(&mut self) {
         self.name_search = true;
+        self.table_state.select(None);
     }
 
     pub fn update_filtered_list(&mut self) {
@@ -178,6 +187,7 @@ impl TaskSelection {
             }
         }
 
+        self.table_state.select(None);
         self.filtered_task_list = Some(filtered_list);
     }
 }

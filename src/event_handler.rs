@@ -4,7 +4,7 @@ use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyModifiers};
 
 use crate::{
     kunai::Kunai,
-    ui::{CurrentScreen, SubScreen},
+    ui::{self, CurrentScreen, SubScreen},
 };
 
 // Returns a boolean to justify further processing of events
@@ -68,11 +68,12 @@ fn handle_taskselection(kunai: &mut Kunai, key: KeyEvent) -> bool {
                 kunai.tasks.deselect_index();
             }
         }
-        KeyCode::Enter if kunai.tasks.selected_task_idx.is_some() => {
-            // TODO: Cloning bad?
-            kunai
-                .select_task(kunai.tasks.task_list[kunai.tasks.selected_task_idx.unwrap()].clone());
-        }
+        KeyCode::Enter => match kunai.tasks.table_state.selected() {
+            Some(idx) => {
+                kunai.select_task(idx);
+            }
+            None => {}
+        },
         _ => {}
     }
 
@@ -97,10 +98,11 @@ fn handle_memoryeditor(kunai: &mut Kunai, key: KeyEvent) -> bool {
             SubScreen::MemorySearch => {
                 if key.modifiers == KeyModifiers::CONTROL {
                     match c {
-                        // TODO: Impl refresh search
+                        // TODO: Impl refresh search, with prev value
                         'r' => kunai.memedit.search_memory(),
                         'm' => kunai.memedit.sub_screen = SubScreen::MemoryMaps,
                         'e' => {
+                            // Check if value is highlihted for editing
                             let selected_loc = match kunai.memedit.search_table_state.selected() {
                                 Some(idx) => kunai.memedit.search_list[idx].clone(),
                                 None => return true,
