@@ -1,6 +1,7 @@
 use std::{
     fs::File,
     io::{self, Read, Seek, SeekFrom},
+    usize,
 };
 
 use memchr::memmem;
@@ -33,8 +34,8 @@ impl TaskMemory {
 ///  Start, end are converted into usize
 #[derive(Debug, Clone)]
 pub struct MemoryMap {
-    pub start: i64,
-    pub end: i64,
+    pub start: usize,
+    pub end: usize,
     pub perms: String,
     pub name: String,
 
@@ -56,9 +57,10 @@ impl MemoryMap {
 
 #[derive(Debug, Clone)]
 pub struct SearchLocation {
-    pub start: i64,
-    pub end: i64,
+    pub start: usize,
+    pub end: usize,
     pub value: String,
+    pub prev_value: String,
     pub mem_info: MemoryMap,
     // TODO: prev value
 }
@@ -69,22 +71,28 @@ impl SearchLocation {
             start: 0,
             end: 0,
             value: String::new(),
+            prev_value: String::new(),
             mem_info: MemoryMap::new(), // TODO: This is bad
         }
     }
 }
 
-pub fn read_mem(pid: &String, start: i64, end: i64) -> io::Result<Vec<u8>> {
+pub fn read_mem(pid: &String, start: usize, end: usize) -> io::Result<Vec<u8>> {
     let mem_file = "/proc/".to_string() + pid + "/mem";
     let mut mem = match File::open(mem_file) {
         Ok(f) => f,
         Err(e) => return Err(e),
     };
+    trace_dbg!(start);
+    trace_dbg!(end);
 
-    let read_len = end - start;
-    let mut mem_buf = vec![0u8; read_len as usize];
+    let read_len = start.abs_diff(end); // |start - end| (Mathematical expression)
 
-    mem.seek(SeekFrom::Current(start))?;
+    trace_dbg!(read_len);
+
+    let mut mem_buf = vec![0u8; read_len];
+
+    mem.seek(SeekFrom::Start(start as u64))?;
 
     mem.read_exact(&mut mem_buf)?;
 
@@ -115,8 +123,9 @@ pub fn search_mem(
     mem.seek(SeekFrom::Start(mem_start as u64))?;
 
     let mem_size = mem_end - mem_start;
+    trace_dbg!(mem_size);
 
-    let mut mem_buf = vec![0u8; mem_size as usize];
+    let mut mem_buf = vec![0u8; mem_size];
 
     mem.read_exact(&mut mem_buf)?;
 
@@ -126,14 +135,15 @@ pub fn search_mem(
         // println!("Found occurance in {} at {}", map.name, occurance);
         let mut loc = SearchLocation::new();
 
-        loc.start = map.start + occurance as i64;
-        loc.end = map.start + loc.start + search_bytes.len() as i64;
+        loc.start = map.start + occurance;
+        loc.end = map.start + occurance + search_bytes.len();
+        trace_dbg!(loc.end);
         loc.mem_info = map.clone();
 
         match mem.seek(SeekFrom::Start(loc.start as u64)) {
             Ok(_) => {}
             Err(e) => {
-                println!("{e}");
+                trace_dbg!(e);
                 continue;
             }
         }
@@ -141,8 +151,8 @@ pub fn search_mem(
         match mem.read_exact(&mut value) {
             Ok(_) => {}
             Err(e) => {
-                println!("{e}");
-                // panic!();
+                trace_dbg!(e);
+                continue;
             }
         }
 

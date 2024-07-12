@@ -47,11 +47,11 @@ pub fn read_maps(pid: &String) -> Result<Vec<MemoryMap>, io::Error> {
         };
 
         mm.start = match i64::from_str_radix(start, 16) {
-            Ok(n) => n,
+            Ok(n) => n as usize,
             Err(_) => continue,
         };
         mm.end = match i64::from_str_radix(end, 16) {
-            Ok(n) => n,
+            Ok(n) => n as usize,
             Err(_) => continue,
         };
 

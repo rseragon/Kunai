@@ -31,7 +31,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     // Ok(())
 }
 
-#[allow(dead_code)]
+#[allow(dead_code, unused)]
 fn dummy_runner(kunai: &mut Kunai) {
     let pid = "11489".to_string();
     let maps = read_maps(&pid).unwrap();
@@ -41,8 +41,8 @@ fn dummy_runner(kunai: &mut Kunai) {
         println!(
             "Reading: {} ({} - {}) [{}]",
             map.name,
-            num_to_hex(map.start),
-            num_to_hex(map.end),
+            num_to_hex(map.start as i64),
+            num_to_hex(map.end as i64),
             map.perms
         );
         let res = search_mem(&pid, &search_string, map).unwrap();

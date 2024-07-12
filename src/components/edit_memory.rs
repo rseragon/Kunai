@@ -72,23 +72,25 @@ pub fn render_value_editor(frame: &mut Frame, popup_rect: Rect, kunai: &mut Kuna
 }
 
 fn render_search_table(frame: &mut Frame, table_rect: Rect, kunai: &mut Kunai) {
-    let table_header = Row::new(vec!["START", "END", "VALUE", "MEM NAME"])
+    let table_header = Row::new(vec!["START", "END", "VALUE", "PREVIOUS VALUE", "MEM NAME"])
         .style(Style::new().bold())
         .bottom_margin(1);
     let column_widhts = [
-        Constraint::Min(15),
-        Constraint::Min(15),
+        Constraint::Min(10),
+        Constraint::Min(10),
         Constraint::Percentage(40),
-        Constraint::Percentage(30),
+        Constraint::Percentage(20),
+        Constraint::Percentage(10),
     ];
 
     let mut search_locations = Vec::new();
 
     for loc in &kunai.memedit.search_list {
         let row = Row::new(vec![
-            num_to_hex(loc.start),
-            num_to_hex(loc.end),
+            num_to_hex(loc.start as i64),
+            num_to_hex(loc.end as i64),
             loc.value.to_string(),
+            loc.prev_value.to_string(),
             loc.mem_info.name.to_string(),
         ]);
 
@@ -125,8 +127,8 @@ fn render_maps_table(frame: &mut Frame, body_rect: Rect, kunai: &mut Kunai) {
                 true => "Y".to_string(),
                 false => "N".to_string(),
             },
-            num_to_hex(m.start),
-            num_to_hex(m.end),
+            num_to_hex(m.start as i64),
+            num_to_hex(m.end as i64),
             m.perms.to_string(),
             m.name.to_string(),
         ]));

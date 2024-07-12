@@ -72,7 +72,9 @@ fn handle_taskselection(kunai: &mut Kunai, key: KeyEvent) -> bool {
             Some(idx) => {
                 kunai.select_task(idx);
             }
-            None => {}
+            None => {
+                // TODO: show ui message to select something
+            }
         },
         _ => {}
     }
@@ -99,7 +101,7 @@ fn handle_memoryeditor(kunai: &mut Kunai, key: KeyEvent) -> bool {
                 if key.modifiers == KeyModifiers::CONTROL {
                     match c {
                         // TODO: Impl refresh search, with prev value
-                        'r' => kunai.memedit.search_memory(),
+                        'r' => kunai.memedit.refresh_list(),
                         'm' => kunai.memedit.sub_screen = SubScreen::MemoryMaps,
                         'e' => {
                             // Check if value is highlihted for editing

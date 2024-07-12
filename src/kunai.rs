@@ -8,10 +8,11 @@ use std::{
 use ratatui::widgets::TableState;
 
 use crate::{
-    memory_model::{search_mem, SearchLocation, TaskMemory},
+    memory_model::{read_mem, search_mem, SearchLocation, TaskMemory},
     proc_utils::get_tasks,
     trace_dbg,
     ui::{CurrentScreen, SubScreen},
+    utils::bytes_to_string,
 };
 
 #[derive(Debug)]
@@ -77,10 +78,7 @@ impl Kunai {
     pub fn select_task(&mut self, index: usize) {
         let task = match &self.tasks.filtered_task_list {
             Some(list) => list[index].clone(),
-            None => {
-                // TODO: Show UI error here
-                return;
-            }
+            None => self.tasks.task_list[index].clone(), // If not seraching, select normally
         };
 
         self.memedit.task = task.clone();
@@ -134,7 +132,7 @@ impl TaskSelection {
         let idx = match self.table_state.selected() {
             Some(i) => {
                 if i == 0 {
-                    i - 1
+                    list_len - 1
                 } else {
                     (i - 1) % list_len
                 }
@@ -225,6 +223,25 @@ impl MemoryEditor {
             ui_msg: None,
             selected_value: None,
             new_value: String::new(),
+        }
+    }
+
+    /// Refreshes the previously searched list
+    /// while adding prev value
+    pub fn refresh_list(&mut self) {
+        for location in &mut self.search_list {
+            let new_value = match read_mem(&self.task.pid, location.start, location.end) {
+                Ok(v) => {
+                    trace_dbg!(&v);
+                    bytes_to_string(v)
+                }
+                Err(e) => {
+                    trace_dbg!(e);
+                    continue;
+                }
+            };
+            // TODO: clone?
+            (location.value, location.prev_value) = (new_value, location.value.clone());
         }
     }
 

@@ -7,6 +7,7 @@ pub fn is_numeric(n: &str) -> bool {
     n.parse::<f64>().is_ok()
 }
 
+// TODO: Should this be i64?
 pub fn num_to_hex(n: i64) -> String {
     format!("{:x}", n)
 }
